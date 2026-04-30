@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Reminder UM</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            padding: 20px;
+            transition: background 0.5s;
+        }
+        .theme-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .theme-controls select,
+        .theme-controls button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .theme-controls select {
+            background: white;
+        }
+        .theme-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        .theme-controls button:hover {
+            background: #764ba2;
+        }
+        #imageInput {
+            display: none;
+        }
+        .container { 
+            max-width: 700px; 
+            margin: auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+        }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            color: #333; 
+            font-size: 28px; 
+        }
+        .input-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: bold; 
+            color: #555; 
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #ddd; 
+            border-radius: 5px; 
+            font-size: 14px; 
+        }
+        input:focus { 
+            outline: none; 
+            border-color: #667eea; 
+        }
+        .btn-tambah { 
+            width: 100%; 
+            padding: 12px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .btn-tambah:hover { 
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        h3 {
+            margin-top: 30px;
+            color: #333;
+            font-size: 18px;
+        }
+        .jadwal-list { 
+            list-style: none; 
+            margin-top: 20px; 
+        }
+        .jadwal-item { 
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            border-left: 5px solid #667eea; 
+            border-radius: 5px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        .jadwal-info { 
+            flex: 1; 
+        }
+        .jadwal-matkul { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #333; 
+        }
+        .jadwal-detail { 
+            font-size: 13px; 
+            color: #666; 
+            margin-top: 5px;
+        }
+        .btn-hapus { 
+            background: #ff6b6b; 
+            color: white; 
+            padding: 8px 15px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold;
+        }
+        .btn-hapus:hover { 
+            background: #ff5252; 
+        }
+        .empty-message { 
+            text-align: center; 
+            color: #999; 
+            padding: 20px; 
+        }
+        .alarm-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            z-index: 9999;
+            text-align: center;
+            min-width: 300px;
+            display: none;
+            animation: bounce 0.5s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+        .alarm-popup.show {
+            display: block;
+        }
+        .alarm-popup h2 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        .alarm-popup p {
+            color: #333;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .alarm-popup button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .alarm-popup button:hover {
+            background: #764ba2;
+        }
+        .alarm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9998;
+            display: none;
+        }
+        .alarm-overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="alarm-overlay" id="alarmOverlay"></div>
+    <div class="alarm-popup" id="alarmPopup">
+        <h2>🔔 ALARM JADWAL!</h2>
+        <p id="alarmMessage"></p>
+        <button onclick="closeAlarm()">OK, SUDAH LIHAT</button>
+    </div>
+
+    <div class="theme-controls">
+        <select id="colorSelect" onchange="changeColor()">
+            <option value="gradient1">🎨 Biru-Ungu</option>
+            <option value="gradient2">🎨 Merah-Orange</option>
+            <option value="gradient3">🎨 Hijau-Biru</option>
+            <option value="gradient4">🎨 Pink-Ungu</option>
+            <option value="color1">🎨 Hitam</option>
+            <option value="color2">🎨 Putih</option>
+            <option value="color3">🎨 Abu-abu</option>
+        </select>
+        <button onclick="document.getElementById('imageInput').click()">📸 Upload</button>
+        <input type="file" id="imageInput" accept="image/*" onchange="uploadImage(event)">
+        <button onclick="resetTheme()">🔄 Reset</button>
+    </div>
+
+    <div class="container">
+        <h1>📚 Smart Reminder UM</h1>
+        
+        <div class="input-group">
+            <label>Matkul:</label>
+            <input type="text" id="matkul" placeholder="Nama mata kuliah">
+        </div>
+        
+        <div class="input-group">
+            <label>Hari:</label>
+            <input type="date" id="hari">
+        </div>
+        
+        <div class="input-group">
+            <label>Jam Mulai:</label>
+            <input type="time" id="jam">
+        </div>
+        
+        <div class="input-group">
+            <label>Gedung:</label>
+            <input type="text" id="gedung" placeholder="Nama gedung">
+        </div>
+        
+        <button class="btn-tambah" onclick="tambahJadwal()">➕ TAMBAH JADWAL</button>
+        
+        <h3>Daftar Jadwal:</h3>
+        <ul class="jadwal-list" id="jadwal-list"></ul>
+    </div>
+
+    <script>
+      // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+}
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('✅ SW registered:', reg))
+            .catch(err => console.log('❌ SW registration failed:', err));
+}
+        let listMemori = JSON.parse(localStorage.getItem('listMemori')) || [];
+        const colorGradients = {
+            gradient1: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            gradient2: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            gradient3: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            gradient4: 'linear-gradient(135deg, #da44b4 0%, #8b5cf6 100%)',
+            color1: '#1a1a1a',
+            color2: '#ffffff',
+            color3: '#f0f0f0'
+        };
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            const savedImage = localStorage.getItem('backgroundImage');
+            
+            if (savedImage) {
+                document.body.style.backgroundImage = `url(${savedImage})`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+            } else if (savedTheme) {
+                document.body.style.background = colorGradients[savedTheme];
+                document.getElementById('colorSelect').value = savedTheme;
+            }
+        }
+
+        function changeColor() {
+            const selected = document.getElementById('colorSelect').value;
+            document.body.style.background = colorGradients[selected];
+            document.body.style.backgroundImage = 'none';
+            localStorage.setItem('selectedTheme', selected);
+            localStorage.removeItem('backgroundImage');
+        }
+
+        function uploadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.body.style.backgroundImage = `url(${e.target.result})`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    localStorage.setItem('backgroundImage', e.target.result);
+                    localStorage.removeItem('selectedTheme');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetTheme() {
+            document.body.style.background = colorGradients.gradient1;
+            document.body.style.backgroundImage = 'none';
+            document.getElementById('colorSelect').value = 'gradient1';
+            localStorage.setItem('selectedTheme', 'gradient1');
+            localStorage.removeItem('backgroundImage');
+        }
+
+        function tambahJadwal() {
+            const matkul = document.getElementById('matkul').value.trim();
+            const hari = document.getElementById('hari').value;
+            const jam = document.getElementById('jam').value;
+            const gedung = document.getElementById('gedung').value.trim();
+
+            if (matkul && hari && jam && gedung) {
+                listMemori.push({ 
+                    matkul, 
+                    hari, 
+                    jam, 
+                    gedung, 
+                    alarm30: false, 
+                    alarm15: false, 
+                    alarm5: false 
+                });
+                localStorage.setItem('listMemori', JSON.stringify(listMemori));
+                updateTampilan();
+                bersihkanInput();
+                alert('✅ Jadwal berhasil ditambahkan!');
+            } else {
+                alert('⚠️ Mohon lengkapi semua field!');
+            }
+        }
+
+        function hapusJadwal(index) {
+            if (confirm('Yakin hapus jadwal ini?')) {
+                listMemori.splice(index, 1);
+                localStorage.setItem('listMemori', JSON.stringify(listMemori));
+                updateTampilan();
+            }
+        }
+
+        function updateTampilan() {
+            const list = document.getElementById('jadwal-list');
+            
+            if (listMemori.length === 0) {
+                list.innerHTML = '<li class="empty-message">Belum ada jadwal. Tambahkan jadwal baru!</li>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            listMemori.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'jadwal-item';
+                li.innerHTML = `
+                    <div class="jadwal-info">
+                        <div class="jadwal-matkul">${item.matkul}</div>
+                        <div class="jadwal-detail">📅 ${item.hari} | ⏰ ${item.jam} | 🏢 ${item.gedung}</div>
+                    </div>
+                    <button class="btn-hapus" onclick="hapusJadwal(${index})">HAPUS</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function bersihkanInput() {
+            document.getElementById('matkul').value = '';
+            document.getElementById('hari').value = '';
+            document.getElementById('jam').value = '';
+            document.getElementById('gedung').value = '';
+        }
+
+        function playSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+            
+            gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1);
+        }
+
+        function showAlarm(message) {
+            const popup = document.getElementById('alarmPopup');
+            const overlay = document.getElementById('alarmOverlay');
+            document.getElementById('alarmMessage').textContent = message;
+            
+            popup.classList.add('show');
+            overlay.classList.add('show');
+            
+            playSound();
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+            
+            // System notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🔔 ALARM JADWAL!', {
+                    body: message,
+                    icon: '📚',
+                    tag: 'alarm'
+                });
+            }
+        }
+
+        function closeAlarm() {
+            document.getElementById('alarmPopup').classList.remove('show');
+            document.getElementById('alarmOverlay').classList.remove('show');
+        }
+
+        function cekAlarm() {
+            const now = new Date();
+            const menitSekarang = now.getHours() * 60 + now.getMinutes();
+            const hariSekarang = now.toISOString().split('T')[0];
+
+            listMemori.forEach(item => {
+                if (item.hari === hariSekarang) {
+                    const [jam, menit] = item.jam.split(':').map(Number);
+                    const totalMenitJadwal = jam * 60 + menit;
+                    const selisih = totalMenitJadwal - menitSekarang;
+
+                    if (selisih === 30 && !item.alarm30) {
+                        showAlarm(`30 Menit lagi: ${item.matkul}\nGedung: ${item.gedung}`);
+                        item.alarm30 = true;
+                        localStorage.setItem('listMemori', JSON.stringify(listMemori));
+                    }
+                    
+                    if (selisih === 15 && !item.alarm15) {
+                        showAlarm(`15 Menit lagi!\nGedung: ${item.gedung}`);
+                        item.alarm15 = true;
+                        localStorage.setItem('listMemori', JSON.stringify(listMemori));
+                    }
+
+                    if (selisih === 5 && !item.alarm5) {
+                        showAlarm(`⚠️ WAKTU MEPET!\n5 Menit lagi ${item.matkul} dimulai!\nSegera ke ${item.gedung}!`);
+                        item.alarm5 = true;
+                        localStorage.setItem('listMemori', JSON.stringify(listMemori));
+                    }
+                }
+            });
+        }
+
+        loadTheme();
+        setInterval(cekAlarm, 30000);
+        updateTampilan();
+        updateTampilan();
+
+    // Tambahkan ini di bawah updateTampilan();
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js');
+      });
+    }
+    </script>
+</body>
+</html>
