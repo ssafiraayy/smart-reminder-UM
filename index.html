@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Reminder UM</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="logo.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="logo.jpg">
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -264,17 +267,20 @@
     </div>
 
     <script>
-      // Request notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-}
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
 
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('✅ SW registered:', reg))
-            .catch(err => console.log('❌ SW registration failed:', err));
-}
+        // REGISTRASI SERVICE WORKER (VERSI BERSIH)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ SW Terdaftar'))
+                    .catch(err => console.log('❌ SW Gagal', err));
+            });
+        }
+
         let listMemori = JSON.parse(localStorage.getItem('listMemori')) || [];
         const colorGradients = {
             gradient1: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -425,11 +431,10 @@
                 navigator.vibrate([200, 100, 200, 100, 200]);
             }
             
-            // System notification
             if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('🔔 ALARM JADWAL!', {
                     body: message,
-                    icon: '📚',
+                    icon: 'logo.jpg',
                     tag: 'alarm'
                 });
             }
@@ -475,14 +480,6 @@
         loadTheme();
         setInterval(cekAlarm, 30000);
         updateTampilan();
-        updateTampilan();
-
-    // Tambahkan ini di bawah updateTampilan();
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js');
-      });
-    }
     </script>
 </body>
 </html>
