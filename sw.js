@@ -3,9 +3,7 @@ const assets = [
   './',
   './index.html',
   './manifest.json',
-  // Tambahkan file CSS atau Gambar kamu di sini jika ada, contoh:
-  // './style.css',
-  // './icon.png'
+  './logo.jpg' // Tambahan agar logo kamu terbaca oleh sistem PWA
 ];
 
 // Tahap Install: Menyimpan file ke dalam cache (memori browser)
